@@ -20,6 +20,32 @@
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom-color: #8b5cf6;
+            color: #8b5cf6;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
         .search-bar {
             padding: 15px;
         }
@@ -61,6 +87,33 @@
             border: 1px solid #ccc;
             box-sizing: border-box;
         }
+        .rating-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .rating-scale {
+            display: flex;
+            gap: 5px;
+        }
+        .rating-number {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .rating-number.selected {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
         .save-btn, .close-btn {
             background-color: #1976d2;
             color: white;
@@ -83,67 +136,230 @@
             margin-bottom: 10px;
             border-radius: 8px;
             box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #8b5cf6;
+        }
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .entry-time-badge {
+            background: #f3e8ff;
+            color: #7c3aed;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .mindfulness-score {
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
         }
         .empty-state {
             text-align: center;
             padding: 40px 20px;
             color: #666;
         }
+        .analytics-container {
+            padding: 15px;
+        }
+        .stats-card {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .stats-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .stats-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b5cf6;
+        }
+        .time-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .time-stat {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .progress-chart {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🧘‍♀️ Mindful Diary</h1>
-        <p>Reflect on your meditation journey</p>
+        <p>Track your meditation journey with insights</p>
     </div>
 
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search your reflections...">
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('journal')">📝 Journal</button>
+        <button class="tab" onclick="switchTab('analytics')">📊 Analytics</button>
     </div>
 
-    <button id="addButton">+ New Meditation Reflection</button>
+    <!-- Journal Tab -->
+    <div id="journal" class="tab-content active">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search your reflections...">
+        </div>
 
-    <div id="formContainer" class="form-container hidden">
-        <div class="form-header">
-            <h2>New Reflection</h2>
-            <button id="closeButton" class="close-btn">&times;</button>
+        <button id="addButton">+ New Meditation Reflection</button>
+
+        <div id="formContainer" class="form-container hidden">
+            <div class="form-header">
+                <h2>New Reflection</h2>
+                <button id="closeButton" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="dateInput">
+            </div>
+            
+            <div class="form-group">
+                <label>Time of Day</label>
+                <select id="timeOfDaySelect">
+                    <option value="morning">🌅 Morning</option>
+                    <option value="afternoon">☀️ Afternoon</option>
+                    <option value="evening">🌅 Evening</option>
+                    <option value="bedtime">🌙 Before Bed</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" id="durationInput" placeholder="e.g., 20">
+            </div>
+            
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="locationInput" placeholder="e.g., Living room, Park">
+            </div>
+            
+            <div class="rating-group">
+                <label style="margin-bottom: 0;">Mindfulness Level (1-10):</label>
+                <div class="rating-scale" id="ratingScale">
+                    <div class="rating-number" data-rating="1">1</div>
+                    <div class="rating-number" data-rating="2">2</div>
+                    <div class="rating-number" data-rating="3">3</div>
+                    <div class="rating-number" data-rating="4">4</div>
+                    <div class="rating-number" data-rating="5">5</div>
+                    <div class="rating-number" data-rating="6">6</div>
+                    <div class="rating-number" data-rating="7">7</div>
+                    <div class="rating-number" data-rating="8">8</div>
+                    <div class="rating-number" data-rating="9">9</div>
+                    <div class="rating-number" data-rating="10">10</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Mood After Meditation</label>
+                <select id="moodSelect">
+                    <option value="peaceful">😌 Peaceful</option>
+                    <option value="grateful">🙏 Grateful</option>
+                    <option value="focused">🎯 Focused</option>
+                    <option value="happy">😊 Happy</option>
+                    <option value="neutral" selected>😐 Neutral</option>
+                    <option value="restless">😤 Restless</option>
+                    <option value="anxious">😰 Anxious</option>
+                    <option value="sad">😢 Sad</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Thoughts & Reflections</label>
+                <textarea id="thoughtsInput" placeholder="What thoughts came up during meditation? How did you feel?"></textarea>
+            </div>
+            
+            <button id="saveButton" class="save-btn">💾 Save Reflection</button>
         </div>
-        <div class="form-group">
-            <label>Date</label>
-            <input type="date" id="dateInput">
-        </div>
-        <div class="form-group">
-            <label>Duration (minutes)</label>
-            <input type="number" id="durationInput" placeholder="e.g., 20">
-        </div>
-        <div class="form-group">
-            <label>Location</label>
-            <input type="text" id="locationInput" placeholder="e.g., Living room, Park">
-        </div>
-        <div class="form-group">
-            <label>Mood After Meditation</label>
-            <select id="moodSelect">
-                <option value="peaceful">😌 Peaceful</option>
-                <option value="grateful">🙏 Grateful</option>
-                <option value="focused">🎯 Focused</option>
-                <option value="happy">😊 Happy</option>
-                <option value="neutral" selected>😐 Neutral</option>
-                <option value="restless">😤 Restless</option>
-                <option value="anxious">😰 Anxious</option>
-                <option value="sad">😢 Sad</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Thoughts & Reflections</label>
-            <textarea id="thoughtsInput" placeholder="What thoughts came up during meditation?"></textarea>
-        </div>
-        <button id="saveButton" class="save-btn">💾 Save Reflection</button>
+
+        <div id="entriesContainer"></div>
     </div>
 
-    <div id="entriesContainer"></div>
+    <!-- Analytics Tab -->
+    <div id="analytics" class="tab-content">
+        <div class="analytics-container">
+            <div class="stats-card">
+                <div class="stats-title">This Week's Average</div>
+                <div class="stats-value" id="weeklyAverage">-</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">Mindfulness Level</div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-title">Total Sessions</div>
+                <div class="stats-value" id="totalSessions">0</div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-title">Best Time for Meditation</div>
+                <div style="font-size: 18px; font-weight: bold; color: #10b981;" id="bestTime">-</div>
+                <div class="time-stats">
+                    <div class="time-stat">
+                        <div style="font-weight: bold;">🌅 Morning</div>
+                        <div id="morningAvg">-</div>
+                    </div>
+                    <div class="time-stat">
+                        <div style="font-weight: bold;">☀️ Afternoon</div>
+                        <div id="afternoonAvg">-</div>
+                    </div>
+                    <div class="time-stat">
+                        <div style="font-weight: bold;">🌅 Evening</div>
+                        <div id="eveningAvg">-</div>
+                    </div>
+                    <div class="time-stat">
+                        <div style="font-weight: bold;">🌙 Before Bed</div>
+                        <div id="bedtimeAvg">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-chart">
+                <div class="stats-title">Recent Progress</div>
+                <div id="progressChart">
+                    <div style="color: #666; text-align: center; padding: 20px;">
+                        Add more reflections to see your progress chart
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let entries = [];
+        let selectedRating = 5;
+        
+        // Try to load from localStorage
+        try {
+            const saved = localStorage.getItem('mindfulDiaryEntries');
+            if (saved) {
+                entries = JSON.parse(saved);
+            }
+        } catch (error) {
+            console.log('localStorage not available');
+        }
+
         document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
 
         const moodEmojis = {
@@ -151,6 +367,40 @@
             sad: '😢', neutral: '😐', happy: '😊', anxious: '😰'
         };
 
+        const timeEmojis = {
+            morning: '🌅', afternoon: '☀️', evening: '🌅', bedtime: '🌙'
+        };
+
+        const timeLabels = {
+            morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', bedtime: 'Before Bed'
+        };
+
+        // Rating system
+        document.querySelectorAll('.rating-number').forEach(num => {
+            num.addEventListener('click', () => {
+                document.querySelectorAll('.rating-number').forEach(n => n.classList.remove('selected'));
+                num.classList.add('selected');
+                selectedRating = parseInt(num.dataset.rating);
+            });
+        });
+
+        // Set default rating
+        document.querySelector('.rating-number[data-rating="5"]').classList.add('selected');
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'analytics') {
+                updateAnalytics();
+            }
+        }
+
+        // Event listeners
         document.getElementById('addButton').addEventListener('click', () => {
             document.getElementById('formContainer').classList.remove('hidden');
             document.getElementById('addButton').style.display = 'none';
@@ -159,53 +409,171 @@
         document.getElementById('closeButton').addEventListener('click', () => {
             document.getElementById('formContainer').classList.add('hidden');
             document.getElementById('addButton').style.display = 'block';
+            clearForm();
         });
 
-        document.getElementById('saveButton').addEventListener('click', () => {
+        document.getElementById('saveButton').addEventListener('click', saveEntry);
+        document.getElementById('searchInput').addEventListener('input', handleSearch);
+
+        function clearForm() {
+            document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+            document.getElementById('durationInput').value = '';
+            document.getElementById('locationInput').value = '';
+            document.getElementById('moodSelect').value = 'neutral';
+            document.getElementById('thoughtsInput').value = '';
+            document.getElementById('timeOfDaySelect').value = 'morning';
+            
+            // Reset rating
+            document.querySelectorAll('.rating-number').forEach(n => n.classList.remove('selected'));
+            document.querySelector('.rating-number[data-rating="5"]').classList.add('selected');
+            selectedRating = 5;
+        }
+
+        function saveEntry() {
             const thoughts = document.getElementById('thoughtsInput').value.trim();
             if (!thoughts) {
-                alert('Please enter your thoughts');
+                alert('Please enter your thoughts and reflections');
                 return;
             }
 
             const entry = {
                 id: Date.now(),
                 date: document.getElementById('dateInput').value,
+                timeOfDay: document.getElementById('timeOfDaySelect').value,
                 duration: document.getElementById('durationInput').value,
                 location: document.getElementById('locationInput').value,
                 mood: document.getElementById('moodSelect').value,
-                thoughts: thoughts
+                mindfulnessRating: selectedRating,
+                thoughts: thoughts,
+                timestamp: new Date().toISOString()
             };
 
             entries.unshift(entry);
-            renderEntries();
+            
+            try {
+                localStorage.setItem('mindfulDiaryEntries', JSON.stringify(entries));
+            } catch (error) {
+                console.log('Could not save to localStorage');
+            }
+            
             document.getElementById('formContainer').classList.add('hidden');
             document.getElementById('addButton').style.display = 'block';
-            document.getElementById('thoughtsInput').value = '';
-        });
+            clearForm();
+            renderEntries();
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
 
         function renderEntries() {
             const container = document.getElementById('entriesContainer');
-            if (entries.length === 0) {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filteredEntries = entries;
+            if (searchTerm) {
+                filteredEntries = entries.filter(entry =>
+                    entry.thoughts.toLowerCase().includes(searchTerm) ||
+                    (entry.location && entry.location.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            if (filteredEntries.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <div style="font-size: 48px; margin-bottom: 15px;">🧘‍♀️</div>
-                        <p>Start your mindful journey</p>
+                        <p>${searchTerm ? 'No reflections found' : 'Start your mindful journey'}</p>
                     </div>
                 `;
             } else {
-                container.innerHTML = entries.map(entry => `
+                container.innerHTML = filteredEntries.map(entry => `
                     <div class="entry">
-                        <strong>📅 ${entry.date}</strong>
-                        ${entry.duration ? ` • ${entry.duration} min` : ''}
-                        <br><strong>Mood:</strong> ${moodEmojis[entry.mood]}
-                        ${entry.location ? `<br><strong>Location:</strong> ${entry.location}` : ''}
-                        <br><strong>Thoughts:</strong> ${entry.thoughts}
+                        <div class="entry-header">
+                            <div>
+                                <strong>📅 ${formatDate(entry.date)}</strong>
+                                <span class="entry-time-badge">${timeEmojis[entry.timeOfDay]} ${timeLabels[entry.timeOfDay]}</span>
+                            </div>
+                            <span class="mindfulness-score">🎯 ${entry.mindfulnessRating}/10</span>
+                        </div>
+                        ${entry.duration ? `<div><strong>Duration:</strong> ${entry.duration} min</div>` : ''}
+                        <div><strong>Mood:</strong> ${moodEmojis[entry.mood]}</div>
+                        ${entry.location ? `<div><strong>Location:</strong> ${entry.location}</div>` : ''}
+                        <div style="margin-top: 8px;"><strong>Thoughts:</strong></div>
+                        <div style="font-style: italic; color: #555; margin-top: 4px;">${entry.thoughts}</div>
                     </div>
                 `).join('');
             }
         }
+
+        function handleSearch() {
+            renderEntries();
+        }
+
+        function updateAnalytics() {
+            if (entries.length === 0) return;
+
+            // Calculate weekly average (last 7 days)
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            const weeklyEntries = entries.filter(entry => new Date(entry.date) >= oneWeekAgo);
+            const weeklyAvg = weeklyEntries.length > 0 
+                ? (weeklyEntries.reduce((sum, entry) => sum + entry.mindfulnessRating, 0) / weeklyEntries.length).toFixed(1)
+                : '-';
+            
+            document.getElementById('weeklyAverage').textContent = weeklyAvg;
+            document.getElementById('totalSessions').textContent = entries.length;
+
+            // Calculate averages by time of day
+            const timeStats = {
+                morning: [],
+                afternoon: [],
+                evening: [],
+                bedtime: []
+            };
+
+            entries.forEach(entry => {
+                if (timeStats[entry.timeOfDay]) {
+                    timeStats[entry.timeOfDay].push(entry.mindfulnessRating);
+                }
+            });
+
+            const timeAverages = {};
+            let bestTimeOfDay = '';
+            let bestAverage = 0;
+
+            Object.keys(timeStats).forEach(time => {
+                const ratings = timeStats[time];
+                if (ratings.length > 0) {
+                    const avg = (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1);
+                    timeAverages[time] = avg;
+                    
+                    if (parseFloat(avg) > bestAverage) {
+                        bestAverage = parseFloat(avg);
+                        bestTimeOfDay = time;
+                    }
+                } else {
+                    timeAverages[time] = '-';
+                }
+            });
+
+            document.getElementById('morningAvg').textContent = timeAverages.morning;
+            document.getElementById('afternoonAvg').textContent = timeAverages.afternoon;
+            document.getElementById('eveningAvg').textContent = timeAverages.evening;
+            document.getElementById('bedtimeAvg').textContent = timeAverages.bedtime;
+            
+            document.getElementById('bestTime').textContent = bestTimeOfDay 
+                ? `${timeEmojis[bestTimeOfDay]} ${timeLabels[bestTimeOfDay]} (${timeAverages[bestTimeOfDay]}/10)`
+                : '-';
+        }
+
+        // Initialize
         renderEntries();
+        updateAnalytics();
     </script>
 </body>
 </html>
