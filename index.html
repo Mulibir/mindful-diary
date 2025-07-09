@@ -144,6 +144,28 @@
             align-items: center;
             margin-bottom: 8px;
         }
+        .entry-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .edit-btn:hover {
+            background: #f3f4f6;
+            color: #3b82f6;
+        }
+        .delete-btn:hover {
+            background: #fef2f2;
+            color: #ef4444;
+        }
         .entry-time-badge {
             background: #f3e8ff;
             color: #7c3aed;
@@ -450,9 +472,11 @@
     </div>
 
     <script>
+        // Global variables
         let entries = [];
         let selectedRating = 5;
         let userEmail = '';
+        let editingEntryId = null;
         
         // Try to load from localStorage
         try {
@@ -538,6 +562,11 @@
             document.querySelectorAll('.rating-number').forEach(n => n.classList.remove('selected'));
             document.querySelector('.rating-number[data-rating="5"]').classList.add('selected');
             selectedRating = 5;
+            editingEntryId = null;
+            
+            // Update form title
+            document.querySelector('#formContainer h2').textContent = 'New Reflection';
+            document.getElementById('saveButton').innerHTML = '💾 Save Reflection';
         }
 
         function saveEntry() {
@@ -547,8 +576,7 @@
                 return;
             }
 
-            const entry = {
-                id: Date.now(),
+            const entryData = {
                 date: document.getElementById('dateInput').value,
                 timeOfDay: document.getElementById('timeOfDaySelect').value,
                 duration: document.getElementById('durationInput').value,
@@ -559,7 +587,20 @@
                 timestamp: new Date().toISOString()
             };
 
-            entries.unshift(entry);
+            if (editingEntryId) {
+                // Update existing entry
+                const entryIndex = entries.findIndex(entry => entry.id === editingEntryId);
+                if (entryIndex !== -1) {
+                    entries[entryIndex] = { ...entries[entryIndex], ...entryData };
+                }
+            } else {
+                // Create new entry
+                const newEntry = {
+                    id: Date.now(),
+                    ...entryData
+                };
+                entries.unshift(newEntry);
+            }
             
             try {
                 localStorage.setItem('mindfulDiaryEntries', JSON.stringify(entries));
@@ -572,8 +613,10 @@
             clearForm();
             renderEntries();
 
-            // Check if we should send weekly summary
-            checkWeeklySummary();
+            // Check if we should send weekly summary (only for new entries)
+            if (!editingEntryId) {
+                checkWeeklySummary();
+            }
         }
 
         function formatDate(dateString) {
@@ -611,7 +654,11 @@
                                 <strong>📅 ${formatDate(entry.date)}</strong>
                                 <span class="entry-time-badge">${timeEmojis[entry.timeOfDay]} ${timeLabels[entry.timeOfDay]}</span>
                             </div>
-                            <span class="mindfulness-score">🎯 ${entry.mindfulnessRating}/10</span>
+                            <div class="entry-actions">
+                                <span class="mindfulness-score">🎯 ${entry.mindfulnessRating}/10</span>
+                                <button class="edit-btn" onclick="editEntry(${entry.id})" title="Edit entry">✏️</button>
+                                <button class="delete-btn" onclick="deleteEntry(${entry.id})" title="Delete entry">🗑️</button>
+                            </div>
                         </div>
                         ${entry.duration ? `<div><strong>Duration:</strong> ${entry.duration} min</div>` : ''}
                         <div><strong>Mood:</strong> ${moodEmojis[entry.mood]}</div>
@@ -625,6 +672,48 @@
 
         function handleSearch() {
             renderEntries();
+        }
+
+        function editEntry(entryId) {
+            const entry = entries.find(e => e.id === entryId);
+            if (!entry) return;
+
+            // Populate form with entry data
+            document.getElementById('dateInput').value = entry.date;
+            document.getElementById('timeOfDaySelect').value = entry.timeOfDay;
+            document.getElementById('durationInput').value = entry.duration || '';
+            document.getElementById('locationInput').value = entry.location || '';
+            document.getElementById('moodSelect').value = entry.mood;
+            document.getElementById('thoughtsInput').value = entry.thoughts;
+
+            // Set rating
+            document.querySelectorAll('.rating-number').forEach(n => n.classList.remove('selected'));
+            const ratingElement = document.querySelector(`.rating-number[data-rating="${entry.mindfulnessRating}"]`);
+            if (ratingElement) {
+                ratingElement.classList.add('selected');
+                selectedRating = entry.mindfulnessRating;
+            }
+
+            // Update form appearance
+            editingEntryId = entryId;
+            document.querySelector('#formContainer h2').textContent = 'Edit Reflection';
+            document.getElementById('saveButton').innerHTML = '✏️ Update Reflection';
+
+            // Show form
+            document.getElementById('formContainer').classList.remove('hidden');
+            document.getElementById('addButton').style.display = 'none';
+        }
+
+        function deleteEntry(entryId) {
+            if (confirm('Are you sure you want to delete this reflection?')) {
+                entries = entries.filter(entry => entry.id !== entryId);
+                try {
+                    localStorage.setItem('mindfulDiaryEntries', JSON.stringify(entries));
+                } catch (error) {
+                    console.log('Could not save to localStorage');
+                }
+                renderEntries();
+            }
         }
 
         function updateAnalytics() {
